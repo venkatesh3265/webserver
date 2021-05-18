@@ -17,19 +17,26 @@ What is Socket?
 */
 
 #include <iostream>
-#include <sys/types.h>
+//iostream stands for standard input-output stream. This header file contains definitions to objects like cin, cout, cerr etc.
+//#include <sys/types.h>
+
 #include <unistd.h>
+//unixstandard
+//close()
 #include <sys/socket.h>
-#include <netdb.h>
+// Internet Protocol family 
+//accept(),bind(),socket(),send()
 #include <arpa/inet.h>
+//arpa/inet.h - definitions for internet operations
 #include <string.h>
-#include <string>
+//it contains string function like strlen(),
+
  
 using namespace std;
  
 int main()
 {
-    char *fun = "Hello world";
+    char *fun = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 1024\n\n Hello world!";
     /*Create a socket
     socket( domain , type, protocol )
     domain = Af_INET(internet domain)/Af_unix(unix domain);
@@ -38,6 +45,7 @@ int main()
      if something goes wrong it will return negative value
     */
     int listening = socket(AF_INET, SOCK_STREAM, 0);
+    cout << " Listening "<<listening << endl;
     if (listening == -1)
     {
         cerr << "Can't create a socket! Quitting" << endl;
@@ -47,7 +55,7 @@ int main()
     //configure server site setting
     sockaddr_in hint;
     hint.sin_family = AF_INET;
-    hint.sin_port = htons(54000); //this is to represent byte ordring.here host to network short is reprented as htons
+    hint.sin_port = htons(8888); //this is to represent byte ordring.here host to network short is reprented as htons
     inet_pton(AF_INET, "127.0.0.1", &hint.sin_addr);
     // Bind the ip address and port to a socket
  /* ****************************************** */ 
@@ -77,46 +85,30 @@ int main()
     socklen_t clientSize = sizeof(client);
  
     int clientSocket = accept(listening, (sockaddr*)&client, &clientSize);
-   /*
-    char host[NI_MAXHOST];      // Client's remote name
-    char service[NI_MAXSERV];   // Service (i.e. port) the client is connect on
- 
-    memset(host, 0, NI_MAXHOST); // same as memset(host, 0, NI_MAXHOST);
-    memset(service, 0, NI_MAXSERV);
- 
-    if (getnameinfo((sockaddr*)&client, sizeof(client), host, NI_MAXHOST, service, NI_MAXSERV, 0) == 0)
-    {
-        cout << host << " connected on port! " << service << endl;
-    }
-    else
-    {
-        inet_ntop(AF_INET, &client.sin_addr, host, NI_MAXHOST);
-        cout << host << " connected on port " << ntohs(client.sin_port) << endl;
-    }
-    */
+  
  
     // Close listening socket
     close(listening);
  
     // While loop: accept and send message back to client
     char buf[4096];
- 
-    while (true)
+         while (true)
     {
-        //memset(buf, 0, 4096);
+ 
+        memset(buf, 0, 4096);
  
         // Wait for client to send data
         int bytesReceived = recv(clientSocket, buf, 4096, 0);
         if (bytesReceived == -1)
         {
             cerr << "Error in recv(). Quitting" << endl;
-            break;
+            //break;
         }
  
         if (bytesReceived == 0)
         {
             cout << "Client disconnected " << endl;
-            break;
+            //break;
         }
  
         cout << string(buf, 0, bytesReceived) << endl;
@@ -125,8 +117,8 @@ int main()
         
         //send(clientSocket, buf, bytesReceived + 1, 0);
         send(clientSocket,fun,strlen(fun),0);
-    }
- 
+    
+ }
     // Close the socket
     close(clientSocket);
  
